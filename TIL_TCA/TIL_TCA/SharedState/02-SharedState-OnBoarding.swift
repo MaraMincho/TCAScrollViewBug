@@ -2,12 +2,14 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This case study demonstrates how to use shared data in order to implement a complex sign up flow.
+This case study demonstrates how to use shared data in order to implement a complex sign up flow.
 
-  The sign up flow consists of 3 steps, each of which can mutate a bit of shared data, and a final \
-  summary screen. The summary screen also allows the user to make any last minute edits to any of \
-  the data in the previous steps.
-  """
+The sign up flow consists of 3 steps, each of which can mutate a bit of shared data, and a final \
+summary screen. The summary screen also allows the user to make any last minute edits to any of \
+the data in the previous steps.
+"""
+
+// MARK: - SignUpData
 
 struct SignUpData: Equatable {
   var email = ""
@@ -29,6 +31,8 @@ struct SignUpData: Equatable {
   }
 }
 
+// MARK: - SignUpFeature
+
 @Reducer
 private struct SignUpFeature {
   @Reducer
@@ -38,14 +42,17 @@ private struct SignUpFeature {
     case summary(SummaryFeature)
     case topics(TopicsFeature)
   }
+
   @ObservableState
   struct State {
     var path = StackState<Path.State>()
     @Shared var signUpData: SignUpData
   }
+
   enum Action {
     case path(StackActionOf<Path>)
   }
+
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
@@ -60,6 +67,8 @@ private struct SignUpFeature {
     .forEach(\.path, action: \.path)
   }
 }
+
+// MARK: - SignUpFlow
 
 struct SignUpFlow: View {
   @Bindable private var store = Store(
@@ -99,6 +108,8 @@ struct SignUpFlow: View {
   }
 }
 
+// MARK: - BasicsFeature
+
 @Reducer
 private struct BasicsFeature {
   @ObservableState
@@ -106,13 +117,17 @@ private struct BasicsFeature {
     var isEditingFromSummary = false
     @Shared var signUpData: SignUpData
   }
+
   enum Action: BindableAction {
     case binding(BindingAction<State>)
   }
+
   var body: some ReducerOf<Self> {
     BindingReducer()
   }
 }
+
+// MARK: - BasicsStep
 
 private struct BasicsStep: View {
   @Environment(\.dismiss) private var dismiss
@@ -149,6 +164,8 @@ private struct BasicsStep: View {
   }
 }
 
+// MARK: - PersonalInfoFeature
+
 @Reducer
 private struct PersonalInfoFeature {
   @ObservableState
@@ -156,14 +173,18 @@ private struct PersonalInfoFeature {
     var isEditingFromSummary = false
     @Shared var signUpData: SignUpData
   }
+
   enum Action: BindableAction {
     case binding(BindingAction<State>)
   }
+
   @Dependency(\.dismiss) var dismiss
   var body: some ReducerOf<Self> {
     BindingReducer()
   }
 }
+
+// MARK: - PersonalInfoStep
 
 private struct PersonalInfoStep: View {
   @Environment(\.dismiss) private var dismiss
@@ -197,6 +218,8 @@ private struct PersonalInfoStep: View {
   }
 }
 
+// MARK: - TopicsFeature
+
 @Reducer
 private struct TopicsFeature {
   @ObservableState
@@ -205,6 +228,7 @@ private struct TopicsFeature {
     var isEditingFromSummary = false
     @Shared var topics: Set<SignUpData.Topic>
   }
+
   enum Action: BindableAction {
     case alert(PresentationAction<Never>)
     case binding(BindingAction<State>)
@@ -215,6 +239,7 @@ private struct TopicsFeature {
       case stepFinished
     }
   }
+
   @Dependency(\.dismiss) var dismiss
   var body: some ReducerOf<Self> {
     BindingReducer()
@@ -249,6 +274,8 @@ private struct TopicsFeature {
     .ifLet(\.alert, action: \.alert)
   }
 }
+
+// MARK: - TopicsStep
 
 private struct TopicsStep: View {
   @Bindable var store: StoreOf<TopicsFeature>
@@ -285,6 +312,8 @@ private struct TopicsStep: View {
   }
 }
 
+// MARK: - SummaryFeature
+
 @Reducer
 private struct SummaryFeature {
   @Reducer
@@ -294,11 +323,13 @@ private struct SummaryFeature {
     case personalInfo(PersonalInfoFeature)
     case topics(TopicsFeature)
   }
+
   @ObservableState
   struct State {
     @Presents var destination: Destination.State?
     @Shared var signUpData: SignUpData
   }
+
   enum Action {
     case destination(PresentationAction<Destination.Action>)
     case editFavoriteTopicsButtonTapped
@@ -306,6 +337,7 @@ private struct SummaryFeature {
     case editRequiredInfoButtonTapped
     case submitButtonTapped
   }
+
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
@@ -347,6 +379,8 @@ private struct SummaryFeature {
     .ifLet(\.$destination, action: \.destination)
   }
 }
+
+// MARK: - SummaryStep
 
 private struct SummaryStep: View {
   @Bindable var store: StoreOf<SummaryFeature>
@@ -438,8 +472,8 @@ private struct SummaryStep: View {
   SignUpFlow()
 }
 
-extension Set {
-  fileprivate subscript(contains element: Element) -> Bool {
+private extension Set {
+  subscript(contains element: Element) -> Bool {
     get { contains(element) }
     set {
       if newValue {

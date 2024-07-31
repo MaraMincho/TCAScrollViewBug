@@ -2,23 +2,24 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This demonstrates how to best handle alerts and confirmation dialogs in the Composable \
-  Architecture.
+This demonstrates how to best handle alerts and confirmation dialogs in the Composable \
+Architecture.
 
-  The library comes with two types, `AlertState` and `ConfirmationDialogState`, which are data \
-  descriptions of the state and actions of an alert or dialog. These types can be constructed in \
-  reducers to control whether or not an alert or confirmation dialog is displayed, and \
-  corresponding view modifiers, `alert(_:)` and `confirmationDialog(_:)`, can be handed bindings \
-  to a store focused on an alert or dialog domain so that the alert or dialog can be displayed in \
-  the view.
+The library comes with two types, `AlertState` and `ConfirmationDialogState`, which are data \
+descriptions of the state and actions of an alert or dialog. These types can be constructed in \
+reducers to control whether or not an alert or confirmation dialog is displayed, and \
+corresponding view modifiers, `alert(_:)` and `confirmationDialog(_:)`, can be handed bindings \
+to a store focused on an alert or dialog domain so that the alert or dialog can be displayed in \
+the view.
 
-  The benefit of using these types is that you can get full test coverage on how a user interacts \
-  with alerts and dialogs in your application
-  """
+The benefit of using these types is that you can get full test coverage on how a user interacts \
+with alerts and dialogs in your application
+"""
+
+// MARK: - AlertAndConfirmationDialog
 
 @Reducer
 struct AlertAndConfirmationDialog {
-  
   @ObservableState
   struct State {
     @Presents var alert: AlertState<Action.Alert>?
@@ -26,7 +27,7 @@ struct AlertAndConfirmationDialog {
     @Presents var customAlert: CustomAlert?
     var count = 0
   }
-  
+
   enum Action: Equatable {
     case alert(PresentationAction<Alert>)
     case alertButtonTapped
@@ -35,58 +36,54 @@ struct AlertAndConfirmationDialog {
     case customAlertTapped
     case customAlert(PresentationAction<CustomAlert>)
     case confirmationStateOfAlertAndDialog
-    
-    
+
     @CasePathable
     enum Alert {
       case incrementButtonTapped
     }
-    
+
     @CasePathable
     enum ConfirmationDialog {
       case incrementButtonTapped
       case decrementButtonTapped
     }
-    
+
     @CasePathable
-    enum CustomAlert{
+    enum CustomAlert {
       case closeTapped
     }
   }
-  
+
   var body: some Reducer<State, Action> {
-    Reduce{ state, action in
-      
+    Reduce { state, action in
+
       switch action {
       case .customAlertTapped:
-        state.customAlert = CustomAlert(buttonAction: {
-          
-        })
+        state.customAlert = CustomAlert(buttonAction: {})
         return .none
       case .customAlert(.presented(.closeTapped)):
         return .none
       case .customAlert:
         return .none
 
-      case .confirmationStateOfAlertAndDialog :
+      case .confirmationStateOfAlertAndDialog:
         print("alert: \(state.alert == nil), dialog: \(state.confirmationDialo == nil)")
         return .none
       case .alert(.presented(.incrementButtonTapped)),
-          .confirmationDialog(.presented(.incrementButtonTapped)):
-        state.alert = AlertState{
+           .confirmationDialog(.presented(.incrementButtonTapped)):
+        state.alert = AlertState {
           TextState("Incremented")
         }
         state.count += 1
         return .none
-        
+
       case .alert:
         return .none
-        
+
       case .alertButtonTapped:
         state.alert = AlertState {
           TextState("Alert!")
         } actions: {
-          
           ButtonState(action: .incrementButtonTapped) {
             TextState("Increment")
           }
@@ -94,20 +91,20 @@ struct AlertAndConfirmationDialog {
           TextState("This is an Alert")
         }
         return .none
-    
-      case .confirmationDialog(.presented(.decrementButtonTapped)) :
-        state.alert = AlertState { TextState("Decremented!")}
+
+      case .confirmationDialog(.presented(.decrementButtonTapped)):
+        state.alert = AlertState { TextState("Decremented!") }
         state.count -= 1
         return .none
-        
-      case .confirmationDialog(.presented(.incrementButtonTapped)) :
-        state.alert = AlertState { TextState("increment!!")}
+
+      case .confirmationDialog(.presented(.incrementButtonTapped)):
+        state.alert = AlertState { TextState("increment!!") }
         state.count += 1
         return .none
-        
+
       case .confirmationDialog:
         return .none
-        
+
       case .confirmationDialogButtonTapped:
         state.confirmationDialo = ConfirmationDialogState {
           TextState("Confirmnation dialog")
@@ -121,7 +118,7 @@ struct AlertAndConfirmationDialog {
           ButtonState(action: .incrementButtonTapped) {
             TextState("incrementButtonTapped")
           }
-        }message: {
+        } message: {
           TextState("This is a confirmnation Dialog.")
         }
         return .none
@@ -132,11 +129,12 @@ struct AlertAndConfirmationDialog {
   }
 }
 
+// MARK: - AlertAndConfirmationDialogView
+
 struct AlertAndConfirmationDialogView: View {
   @Bindable var store: StoreOf<AlertAndConfirmationDialog>
 
   var body: some View {
-    
     Form {
       Section {
         AboutView(readMe: readMe)
@@ -145,7 +143,7 @@ struct AlertAndConfirmationDialogView: View {
       Text("Count: \(store.count)")
       Button("Alert") { store.send(.alertButtonTapped) }
       Button("Confirmation Dialog") { store.send(.confirmationDialogButtonTapped) }
-      
+
       Button("상태 확인하기") {
         store.send(.confirmationStateOfAlertAndDialog)
       }
@@ -164,10 +162,12 @@ struct AlertAndConfirmationDialogView: View {
   }
 }
 
+// MARK: - CustomAlert
+
 struct CustomAlert: View {
-  var buttonAction: (() -> ())
+  var buttonAction: () -> Void
   var body: some View {
-    VStack{
+    VStack {
       Button("Close") {
         buttonAction()
       }

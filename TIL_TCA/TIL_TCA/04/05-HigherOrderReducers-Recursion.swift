@@ -2,11 +2,13 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This screen demonstrates how `Reducer` bodies can recursively nest themselves.
+This screen demonstrates how `Reducer` bodies can recursively nest themselves.
 
-  Tap "Add row" to add a row to the current screen's list. Tap the left-hand side of a row to edit \
-  its name, or tap the right-hand side of a row to navigate to its own associated list of rows.
-  """
+Tap "Add row" to add a row to the current screen's list. Tap the left-hand side of a row to edit \
+its name, or tap the right-hand side of a row to navigate to its own associated list of rows.
+"""
+
+// MARK: - Nested
 
 @Reducer
 struct Nested {
@@ -37,7 +39,7 @@ struct Nested {
     Reduce { state, action in
       switch action {
       case .addRowButtonTapped:
-        state.rows.append(State(id: self.uuid()))
+        state.rows.append(State(id: uuid()))
         return .none
 
       case let .nameTextFieldChanged(name):
@@ -57,6 +59,8 @@ struct Nested {
     }
   }
 }
+
+// MARK: - NestedView
 
 struct NestedView: View {
   @Bindable var store: StoreOf<Nested>
@@ -101,7 +105,7 @@ struct NestedView: View {
             Nested.State(
               name: "Bar",
               rows: [
-                Nested.State()
+                Nested.State(),
               ]
             ),
             Nested.State(

@@ -1,6 +1,8 @@
 import ComposableArchitecture
 import Foundation
 
+// MARK: - FactClient
+
 @DependencyClient
 struct FactClient {
   var fetch: @Sendable (Int) async throws -> String
@@ -12,6 +14,8 @@ extension DependencyValues {
     set { self[FactClient.self] = newValue }
   }
 }
+
+// MARK: - FactClient + DependencyKey
 
 extension FactClient: DependencyKey {
   /// This is the "live" fact dependency that reaches into the outside world to fetch trivia.
@@ -31,10 +35,12 @@ extension FactClient: DependencyKey {
   static let testValue = Self()
 }
 
+// MARK: - TestDependency
+
 @DependencyClient
 struct TestDependency {
   var count = 0
-  
+
   mutating func increment() {
     count += 1
   }
@@ -42,10 +48,12 @@ struct TestDependency {
 
 extension DependencyValues {
   var testDependency: TestDependency {
-    get { self[TestDependency.self]}
-    set { self[TestDependency.self] = newValue}
+    get { self[TestDependency.self] }
+    set { self[TestDependency.self] = newValue }
   }
 }
+
+// MARK: - TestDependency + DependencyKey
 
 extension TestDependency: DependencyKey {
   static var liveValue: TestDependency {

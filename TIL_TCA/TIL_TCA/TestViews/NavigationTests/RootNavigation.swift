@@ -1,25 +1,28 @@
-// 
+//
 //  RootNavigation.swift
 //  TIL_TCA
 //
 //  Created by MaraMincho on 7/31/24.
 //
-import Foundation
 import ComposableArchitecture
+import Foundation
 
+// MARK: - RootNavigationPath
 
 enum RootNavigationPath {
   case child
 }
+
+// MARK: - RootNavigation
+
 @Reducer
 struct RootNavigation {
-
   @ObservableState
   struct State {
     var isOnAppear = false
     @Presents var child: ChildNavigation.State? = nil
     @Presents var child2: ChildNavigation.State? = nil
-    init () {}
+    init() {}
   }
 
   enum Action {
@@ -30,11 +33,10 @@ struct RootNavigation {
     case tappedView2
   }
 
-
   var body: some Reducer<State, Action> {
     Reduce { state, action in
       switch action {
-      case let .onAppear(isAppear) :
+      case let .onAppear(isAppear):
         if state.isOnAppear {
           return .none
         }
@@ -43,7 +45,7 @@ struct RootNavigation {
       case .tappedView2:
         state.child2 = .init()
         return .none
-      case .tappedView :
+      case .tappedView:
         state.child = .init()
         return .none
       case .child2:
@@ -62,4 +64,4 @@ struct RootNavigation {
   }
 }
 
-extension Reducer where Self.State == RootNavigation.State, Self.Action == RootNavigation.Action { }
+extension Reducer where Self.State == RootNavigation.State, Self.Action == RootNavigation.Action {}

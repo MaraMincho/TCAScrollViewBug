@@ -1,11 +1,13 @@
 import SwiftUI
 
+// MARK: - AboutView
+
 struct AboutView: View {
   let readMe: String
 
   var body: some View {
     DisclosureGroup("About this case study") {
-      Text(template: self.readMe)
+      Text(template: readMe)
     }
   }
 }
@@ -60,12 +62,12 @@ extension Text {
   }
 }
 
-extension Set {
-  fileprivate mutating func toggle(_ element: Element) {
-    if self.contains(element) {
-      self.remove(element)
+private extension Set {
+  mutating func toggle(_ element: Element) {
+    if contains(element) {
+      remove(element)
     } else {
-      self.insert(element)
+      insert(element)
     }
   }
 }

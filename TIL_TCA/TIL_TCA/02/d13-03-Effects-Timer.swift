@@ -2,12 +2,14 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This application demonstrates how to work with timers in the Composable Architecture.
+This application demonstrates how to work with timers in the Composable Architecture.
 
-  It makes use of the `.timer` method on clocks, which is a helper provided by the Swift Clocks \
-  library included with this library. The helper provides an `AsyncSequence`-friendly API for \
-  dealing with times in asynchronous code.
-  """
+It makes use of the `.timer` method on clocks, which is a helper provided by the Swift Clocks \
+library included with this library. The helper provides an `AsyncSequence`-friendly API for \
+dealing with times in asynchronous code.
+"""
+
+// MARK: - Timers
 
 @Reducer
 struct Timers {
@@ -40,7 +42,7 @@ struct Timers {
         state.isTimerActive.toggle()
         return .run { [isTimerActive = state.isTimerActive] send in
           guard isTimerActive else { return }
-          for await _ in self.clock.timer(interval: .seconds(1)) {
+          for await _ in clock.timer(interval: .seconds(1)) {
             await send(.timerTicked, animation: .interpolatingSpring(stiffness: 3000, damping: 40))
           }
           print("toggleTimerButtonTapped 끝남")
@@ -50,6 +52,8 @@ struct Timers {
     }
   }
 }
+
+// MARK: - TimersView
 
 struct TimersView: View {
   var store: StoreOf<Timers>

@@ -8,36 +8,40 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Message
+
 struct Message: Decodable, Identifiable {
   let id: Int
   let from: String
   let text: String
 }
 
+// MARK: - TaskModifierView
+
 struct TaskModifierView: View {
   @State private var messages = [Message]()
   @State private var count = 0
-  
+
   var body: some View {
     NavigationView {
       VStack {
-        Button{
+        Button {
           count += 1
-        }label: {
-          Text("Button count\(self.count)")
+        } label: {
+          Text("Button count\(count)")
         }
         List(messages) { message in
-          
+
           VStack(alignment: .leading) {
             Text(message.from)
               .font(.headline)
-            
+
             Text(message.text)
           }
         }
       }
       .navigationTitle("Inbox")
-      .onAppear{
+      .onAppear {
         print("View is appeared")
       }
       .task {
@@ -48,7 +52,7 @@ struct TaskModifierView: View {
       }
     }
   }
-  
+
   func loadMessages() async {
     do {
       let url = URL(string: "https://hws.dev/messages.json")!
@@ -56,7 +60,7 @@ struct TaskModifierView: View {
       messages = try JSONDecoder().decode([Message].self, from: data)
     } catch {
       messages = [
-        Message(id: 0, from: "Failed to load inbox.", text: "Please try again later.")
+        Message(id: 0, from: "Failed to load inbox.", text: "Please try again later."),
       ]
     }
   }

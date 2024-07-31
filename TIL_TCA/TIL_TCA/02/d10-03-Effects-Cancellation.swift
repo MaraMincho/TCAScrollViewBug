@@ -2,15 +2,17 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This screen demonstrates how one can cancel in-flight effects in the Composable Architecture.
+This screen demonstrates how one can cancel in-flight effects in the Composable Architecture.
 
-  Use the stepper to count to a number, and then tap the "Number fact" button to fetch \
-  a random fact about that number using an API.
+Use the stepper to count to a number, and then tap the "Number fact" button to fetch \
+a random fact about that number using an API.
 
-  While the API request is in-flight, you can tap "Cancel" to cancel the effect and prevent \
-  it from feeding data back into the application. Interacting with the stepper while a \
-  request is in-flight will also cancel it.
-  """
+While the API request is in-flight, you can tap "Cancel" to cancel the effect and prevent \
+it from feeding data back into the application. Interacting with the stepper while a \
+request is in-flight will also cancel it.
+"""
+
+// MARK: - EffectsCancellation
 
 @Reducer
 struct EffectsCancellation {
@@ -44,13 +46,13 @@ struct EffectsCancellation {
         return .run { send in
           await send(.cancelButtonTapped)
         }
-        
+
       case .factButtonTapped:
         state.currentFact = nil
         state.isFactRequestInFlight = true
 
         return .run { [count = state.count] send in
-          await send(.factResponse(Result { try await self.factClient.fetch(count) }))
+          await send(.factResponse(Result { try await factClient.fetch(count) }))
         }
         .cancellable(id: CancelID.factRequest)
 
@@ -66,6 +68,8 @@ struct EffectsCancellation {
     }
   }
 }
+
+// MARK: - EffectsCancellationView
 
 struct EffectsCancellationView: View {
   @Bindable var store: StoreOf<EffectsCancellation>
@@ -101,7 +105,7 @@ struct EffectsCancellationView: View {
 
       Section {
         Button("Number facts provided by numbersapi.com") {
-          self.openURL(URL(string: "http://numbersapi.com")!)
+          openURL(URL(string: "http://numbersapi.com")!)
         }
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity)

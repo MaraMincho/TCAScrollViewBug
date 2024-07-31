@@ -2,22 +2,24 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This file demonstrates how to handle two-way bindings in the Composable Architecture.
+This file demonstrates how to handle two-way bindings in the Composable Architecture.
 
-  Two-way bindings in SwiftUI are powerful, but also go against the grain of the "unidirectional \
-  data flow" of the Composable Architecture. This is because anything can mutate the value \
-  whenever it wants.
+Two-way bindings in SwiftUI are powerful, but also go against the grain of the "unidirectional \
+data flow" of the Composable Architecture. This is because anything can mutate the value \
+whenever it wants.
 
-  On the other hand, the Composable Architecture demands that mutations can only happen by sending \
-  actions to the store, and this means there is only ever one place to see how the state of our \
-  feature evolves, which is the reducer.
+On the other hand, the Composable Architecture demands that mutations can only happen by sending \
+actions to the store, and this means there is only ever one place to see how the state of our \
+feature evolves, which is the reducer.
 
-  Any SwiftUI component that requires a binding to do its job can be used in the Composable \
-  Architecture. You can derive a binding from a store by taking a bindable store, chaining into a \
-  property of state that renders the component, and calling the `sending` method with a key path \
-  to an action to send when the component changes, which means you can keep using a unidirectional \
-  style for your feature.
-  """
+Any SwiftUI component that requires a binding to do its job can be used in the Composable \
+Architecture. You can derive a binding from a store by taking a bindable store, chaining into a \
+property of state that renders the component, and calling the `sending` method with a key path \
+to an action to send when the component changes, which means you can keep using a unidirectional \
+style for your feature.
+"""
+
+// MARK: - BindingBasics
 
 @Reducer
 struct BindingBasics {
@@ -61,6 +63,8 @@ struct BindingBasics {
   }
 }
 
+// MARK: - BindingBasicsView
+
 struct BindingBasicsView: View {
   @Bindable var store: StoreOf<BindingBasics>
 
@@ -71,7 +75,7 @@ struct BindingBasicsView: View {
       Section {
         AboutView(readMe: readMe)
       }
-      Toggle("Test Toggle",isOn: $toggleValue)
+      Toggle("Test Toggle", isOn: $toggleValue)
       HStack {
         TextField("Type here", text: $store.text.sending(\.textChanged))
           .disableAutocorrection(true)
@@ -88,7 +92,7 @@ struct BindingBasicsView: View {
       Stepper(
         "Max slider value: \(store.stepCount)",
         value: $store.stepCount.sending(\.stepCountChanged),
-        in: 0...100
+        in: 0 ... 100
       )
       .disabled(store.toggleIsOn)
 
@@ -96,7 +100,7 @@ struct BindingBasicsView: View {
         Text("Slider value: \(Int(store.sliderValue))")
         Slider(
           value: $store.sliderValue.sending(\.sliderValueChanged),
-          in: 0...Double(store.stepCount)
+          in: 0 ... Double(store.stepCount)
         )
         .tint(.accentColor)
       }
@@ -147,5 +151,3 @@ extension Binding {
     )
   }
 }
-
-

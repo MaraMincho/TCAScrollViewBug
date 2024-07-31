@@ -1,19 +1,21 @@
+import Combine
 import ComposableArchitecture
 import SwiftUI
-import Combine
 
 private let readMe = """
-  This application demonstrates how to handle long-living effects, for example notifications from \
-  Notification Center, and how to tie an effect's lifetime to the lifetime of the view.
+This application demonstrates how to handle long-living effects, for example notifications from \
+Notification Center, and how to tie an effect's lifetime to the lifetime of the view.
 
-  Run this application in the simulator, and take a few screenshots by going to \
-  *Device › Screenshot* in the menu, and observe that the UI counts the number of times that \
-  happens.
+Run this application in the simulator, and take a few screenshots by going to \
+*Device › Screenshot* in the menu, and observe that the UI counts the number of times that \
+happens.
 
-  Then, navigate to another screen and take screenshots there, and observe that this screen does \
-  *not* count those screenshots. The notifications effect is automatically cancelled when leaving \
-  the screen, and restarted when entering the screen.
-  """
+Then, navigate to another screen and take screenshots there, and observe that this screen does \
+*not* count those screenshots. The notifications effect is automatically cancelled when leaving \
+the screen, and restarted when entering the screen.
+"""
+
+// MARK: - LongLivingEffects
 
 @Reducer
 struct LongLivingEffects {
@@ -39,37 +41,37 @@ struct LongLivingEffects {
       case .task:
         // When the view appears, start the effect that emits when screenshots are taken.
         return .run { send in
-          for await _ in await self.screenshots() {
+          for await _ in await screenshots() {
             await send(.userDidTakeScreenshotNotification)
           }
         }
-        
+
       case .taskWithPublisher:
         // When the view appears, start the effect that emits when screenshots are taken.
         return .publisher {
           ss.ssnotification()
-            .map{str in Action.userDidTakeScreenshotNotification2(str)}
+            .map { str in Action.userDidTakeScreenshotNotification2(str) }
         }
 
       case .userDidTakeScreenshotNotification:
         state.screenshotCount += 1
         return .none
-      case let .userDidTakeScreenshotNotification2(str) :
+      case let .userDidTakeScreenshotNotification2(str):
         print(str)
         return .none
       }
-  
     }
   }
 }
 
+// MARK: - SSAdaptor
 
 final class SSAdaptor: DependencyKey {
   static var liveValue: SSAdaptor = .init()
-  
+
   func ssnotification() -> AnyPublisher<String, Never> {
     return NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)
-      .map{cur in return cur.description}
+      .map { cur in return cur.description }
       .eraseToAnyPublisher()
   }
 }
@@ -79,11 +81,14 @@ extension DependencyValues {
     get { self[ScreenshotsKey.self] }
     set { self[ScreenshotsKey.self] = newValue }
   }
+
   var ss: SSAdaptor {
-    get { self[SSAdaptor.self]}
-    set { self[SSAdaptor.self] = newValue}
+    get { self[SSAdaptor.self] }
+    set { self[SSAdaptor.self] = newValue }
   }
 }
+
+// MARK: - ScreenshotsKey
 
 private enum ScreenshotsKey: DependencyKey {
   static let liveValue: @Sendable () async -> AsyncStream<Void> = {
@@ -94,6 +99,8 @@ private enum ScreenshotsKey: DependencyKey {
     )
   }
 }
+
+// MARK: - LongLivingEffectsView
 
 struct LongLivingEffectsView: View {
   @Bindable
@@ -107,7 +114,7 @@ struct LongLivingEffectsView: View {
         }
         Text("A screenshot of this screen has been taken \(store.screenshotCount) times.")
           .font(.headline)
-        
+
         Section {
           NavigationLink {
             detailView
@@ -119,10 +126,12 @@ struct LongLivingEffectsView: View {
     }
     .navigationTitle("Long-living effects")
     .task {
-      // MARK:- 이 화면에서만 동작하게
+      // MARK: - 이 화면에서만 동작하게
+
 //       await store.send(.task).finish()
-      
-      // MARK:- 다른 화면에서도 동작하게
+
+      // MARK: - 다른 화면에서도 동작하게
+
       store.send(.task)
       store.send(.taskWithPublisher)
     }

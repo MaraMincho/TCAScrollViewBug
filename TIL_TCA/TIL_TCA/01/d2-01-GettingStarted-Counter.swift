@@ -2,16 +2,17 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This screen demonstrates the basics of the Composable Architecture in an archetypal counter \
-  application.
+This screen demonstrates the basics of the Composable Architecture in an archetypal counter \
+application.
 
-  The domain of the application is modeled using simple data types that correspond to the mutable \
-  state of the application and any actions that can affect that state or the outside world.
-  """
+The domain of the application is modeled using simple data types that correspond to the mutable \
+state of the application and any actions that can affect that state or the outside world.
+"""
+
+// MARK: - Counter
 
 @Reducer
 struct Counter {
-  
   @ObservableState
   struct State: Equatable {
     var count = 0
@@ -40,6 +41,8 @@ struct Counter {
   }
 }
 
+// MARK: - CounterView
+
 struct CounterView: View {
   let store: StoreOf<Counter>
 
@@ -67,13 +70,14 @@ struct CounterView: View {
         }
       }
     }
-  
   }
 }
 
+// MARK: - CounterDemoView
+
 struct CounterDemoView: View {
   let store: StoreOf<Counter>
-  
+
   init(store: StoreOf<Counter>) {
     self.store = store
   }
@@ -83,29 +87,31 @@ struct CounterDemoView: View {
       NavigationLink {
         Color.red
       } label: {
-        VStack{
+        VStack {
           ZStack {
             Color.gray
             Text("asdf")
           }
         }
       }
-      Form { 
+      Form {
         Section {
           AboutView(readMe: readMe)
         }
-        
+
         Section {
           CounterView(store: store)
             .frame(maxWidth: .infinity)
         }
       }
     }
-    
+
     .buttonStyle(.borderless)
     .navigationTitle("Counter demo")
   }
 }
+
+// MARK: - SomeNavigation
 
 enum SomeNavigation {
   case ta

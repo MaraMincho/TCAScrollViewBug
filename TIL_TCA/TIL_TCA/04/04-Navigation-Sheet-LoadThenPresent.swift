@@ -2,12 +2,14 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This screen demonstrates navigation that depends on loading optional data into state.
+This screen demonstrates navigation that depends on loading optional data into state.
 
-  Tapping "Load optional counter" fires off an effect that will load the counter state a second \
-  later. When the counter state is present, you will be programmatically presented a sheet that \
-  depends on this data.
-  """
+Tapping "Load optional counter" fires off an effect that will load the counter state a second \
+later. When the counter state is present, you will be programmatically presented a sheet that \
+depends on this data.
+"""
+
+// MARK: - LoadThenPresent
 
 @Reducer
 struct LoadThenPresent {
@@ -34,7 +36,7 @@ struct LoadThenPresent {
       case .counterButtonTapped:
         state.isActivityIndicatorVisible = true
         return .run { send in
-          try await self.clock.sleep(for: .seconds(1))
+          try await clock.sleep(for: .seconds(1))
           await send(.counterPresentationDelayCompleted)
         }
 
@@ -42,7 +44,6 @@ struct LoadThenPresent {
         state.isActivityIndicatorVisible = false
         state.counter = Counter.State()
         return .none
-
       }
     }
     .ifLet(\.$counter, action: \.counter) {
@@ -50,6 +51,8 @@ struct LoadThenPresent {
     }
   }
 }
+
+// MARK: - LoadThenPresentView
 
 struct LoadThenPresentView: View {
   @Bindable var store: StoreOf<LoadThenPresent>

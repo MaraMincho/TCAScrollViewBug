@@ -2,19 +2,21 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This screen demonstrates how multiple independent screens can share state in the Composable \
-  Architecture. Each tab manages its own state, and could be in separate modules, but changes in \
-  one tab are immediately reflected in the other.
+This screen demonstrates how multiple independent screens can share state in the Composable \
+Architecture. Each tab manages its own state, and could be in separate modules, but changes in \
+one tab are immediately reflected in the other.
 
-  This tab has its own state, consisting of a count value that can be incremented and decremented, \
-  as well as an alert value that is set when asking if the current count is prime.
+This tab has its own state, consisting of a count value that can be incremented and decremented, \
+as well as an alert value that is set when asking if the current count is prime.
 
-  Internally, it is also keeping track of various stats, such as min and max counts and total \
-  number of count events that occurred. Those states are viewable in the other tab, and the stats \
-  can be reset from the other tab.
-  """
+Internally, it is also keeping track of various stats, such as min and max counts and total \
+number of count events that occurred. Those states are viewable in the other tab, and the stats \
+can be reset from the other tab.
+"""
 
 import Combine
+
+// MARK: - CounterTab
 
 @Reducer
 struct CounterTab {
@@ -62,6 +64,8 @@ struct CounterTab {
   }
 }
 
+// MARK: - CounterTabView
+
 struct CounterTabView: View {
   @Bindable var store: StoreOf<CounterTab>
 
@@ -96,6 +100,8 @@ struct CounterTabView: View {
   }
 }
 
+// MARK: - ProfileTab
+
 @Reducer
 struct ProfileTab {
   @ObservableState
@@ -118,6 +124,8 @@ struct ProfileTab {
   }
 }
 
+// MARK: - ProfileTabView
+
 struct ProfileTabView: View {
   let store: StoreOf<ProfileTab>
 
@@ -125,13 +133,13 @@ struct ProfileTabView: View {
     Form {
       Text(
         template: """
-          This tab shows state from the previous tab, and it is capable of reseting all of the \
-          state back to 0.
+        This tab shows state from the previous tab, and it is capable of reseting all of the \
+        state back to 0.
 
-          This shows that it is possible for each screen to model its state in the way that makes \
-          the most sense for it, while still allowing the state and mutations to be shared \
-          across independent screens.
-          """,
+        This shows that it is possible for each screen to model its state in the way that makes \
+        the most sense for it, while still allowing the state and mutations to be shared \
+        across independent screens.
+        """,
         .caption
       )
 
@@ -148,10 +156,11 @@ struct ProfileTabView: View {
   }
 }
 
+// MARK: - SharedState
+
 @Reducer
 struct SharedState {
   enum Tab { case counter, profile }
-
 
   @ObservableState
   struct State: Equatable {
@@ -161,9 +170,9 @@ struct SharedState {
     var profile: ProfileTab.State
     init() {
       let newStats = Stats()
-      self.stats = newStats
-      self.counter = .init(stats: newStats)
-      self.profile = .init(stats: newStats)
+      stats = newStats
+      counter = .init(stats: newStats)
+      profile = .init(stats: newStats)
     }
   }
 
@@ -185,7 +194,7 @@ struct SharedState {
         return .none
       }
     }
-    
+
 //    Scope(state: \.counter, action: \.counter) {
 //      CounterTab()
 //    }
@@ -208,13 +217,14 @@ struct SharedState {
 
     Reduce { state, action in
       switch action {
-      case .binding :
+      case .binding:
         return .none
       case .counter(.incrementButtonTapped):
         return .none
       case .counter(.decrementButtonTapped):
         return .none
-      case .counter, .profile:
+      case .counter,
+           .profile:
         return .none
       case let .selectTab(tab):
         state.currentTab = tab
@@ -224,6 +234,8 @@ struct SharedState {
   }
 }
 
+// MARK: - SharedStateView
+
 struct SharedStateView: View {
   @Bindable var store: StoreOf<SharedState>
 
@@ -231,7 +243,7 @@ struct SharedStateView: View {
     TabView(selection: $store.currentTab.sending(\.selectTab)) {
       NavigationStack {
         CounterTabView(
-          store: self.store.scope(state: \.counter, action: \.counter)
+          store: store.scope(state: \.counter, action: \.counter)
         )
       }
       .tag(SharedState.Tab.counter)
@@ -239,7 +251,7 @@ struct SharedStateView: View {
 
       NavigationStack {
         ProfileTabView(
-          store: self.store.scope(state: \.profile, action: \.profile)
+          store: store.scope(state: \.profile, action: \.profile)
         )
       }
       .tag(SharedState.Tab.profile)
@@ -248,9 +260,9 @@ struct SharedStateView: View {
   }
 }
 
+// MARK: - Stats
 
 struct Stats: Equatable {
-  
   private(set) var count = 0
   private(set) var maxCount = 0
   private(set) var minCount = 0
@@ -260,11 +272,13 @@ struct Stats: Equatable {
     numberOfCounts += 1
     maxCount = max(maxCount, count)
   }
+
   mutating func decrement() {
     count -= 1
     numberOfCounts += 1
     minCount = min(minCount, count)
   }
+
   mutating func reset() {
     self = .init()
   }
@@ -274,7 +288,7 @@ struct Stats: Equatable {
 private func isPrime(_ p: Int) -> Bool {
   if p <= 1 { return false }
   if p <= 3 { return true }
-  for i in 2...Int(sqrtf(Float(p))) {
+  for i in 2 ... Int(sqrtf(Float(p))) {
     if p % i == 0 { return false }
   }
   return true

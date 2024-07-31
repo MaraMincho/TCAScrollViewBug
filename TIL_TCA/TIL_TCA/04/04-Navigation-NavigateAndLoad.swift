@@ -2,11 +2,13 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This screen demonstrates navigation that depends on loading optional state.
+This screen demonstrates navigation that depends on loading optional state.
 
-  Tapping "Load optional counter" simultaneously navigates to a screen that depends on optional \
-  counter state and fires off an effect that will load this state a second later.
-  """
+Tapping "Load optional counter" simultaneously navigates to a screen that depends on optional \
+counter state and fires off an effect that will load this state a second later.
+"""
+
+// MARK: - NavigateAndLoad
 
 @Reducer
 struct NavigateAndLoad {
@@ -31,7 +33,7 @@ struct NavigateAndLoad {
       case .setNavigation(isActive: true):
         state.isNavigationActive = true
         return .run { send in
-          try await self.clock.sleep(for: .seconds(1))
+          try await clock.sleep(for: .seconds(1))
           await send(.setNavigationIsActiveDelayCompleted)
         }
         .cancellable(id: CancelID.load)
@@ -54,6 +56,8 @@ struct NavigateAndLoad {
     }
   }
 }
+
+// MARK: - NavigateAndLoadView
 
 struct NavigateAndLoadView: View {
   @Bindable var store: StoreOf<NavigateAndLoad>

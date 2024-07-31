@@ -2,21 +2,23 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This screen demonstrates how to introduce side effects into a feature built with the \
-  Composable Architecture.
+This screen demonstrates how to introduce side effects into a feature built with the \
+Composable Architecture.
 
-  A side effect is a unit of work that needs to be performed in the outside world. For example, an \
-  API request needs to reach an external service over HTTP, which brings with it lots of \
-  uncertainty and complexity.
+A side effect is a unit of work that needs to be performed in the outside world. For example, an \
+API request needs to reach an external service over HTTP, which brings with it lots of \
+uncertainty and complexity.
 
-  Many things we do in our applications involve side effects, such as timers, database requests, \
-  file access, socket connections, and anytime a clock is involved (such as debouncing, \
-  throttling, and delaying), and they are typically difficult to test.
+Many things we do in our applications involve side effects, such as timers, database requests, \
+file access, socket connections, and anytime a clock is involved (such as debouncing, \
+throttling, and delaying), and they are typically difficult to test.
 
-  This application has a simple side effect: tapping "Number fact" will trigger an API request to \
-  load a piece of trivia about that number. This effect is handled by the reducer, and a full test \
-  suite is written to confirm that the effect behaves in the way we expect.
-  """
+This application has a simple side effect: tapping "Number fact" will trigger an API request to \
+load a piece of trivia about that number. This effect is handled by the reducer, and a full test \
+suite is written to confirm that the effect behaves in the way we expect.
+"""
+
+// MARK: - EffectsBasics
 
 @Reducer
 struct EffectsBasics {
@@ -38,7 +40,7 @@ struct EffectsBasics {
   @Dependency(\.continuousClock) var clock
   @Dependency(\.factClient) var factClient
   @Dependency(\.testDependency) var testDependency
-  
+
   private enum CancelID { case delay }
 
   var body: some Reducer<State, Action> {
@@ -50,7 +52,7 @@ struct EffectsBasics {
         return state.count >= 0
           ? .none
           : .run { send in
-            try await self.clock.sleep(for: .seconds(1))
+            try await clock.sleep(for: .seconds(1))
             await send(.decrementDelayResponse)
           }
           .cancellable(id: CancelID.delay)
@@ -65,7 +67,7 @@ struct EffectsBasics {
         state.count += 1
         state.numberFact = nil
         print(testDependency.count)
-        
+
         return state.count >= 0
           ? .cancel(id: CancelID.delay)
           : .none
@@ -76,7 +78,7 @@ struct EffectsBasics {
         // Return an effect that fetches a number fact from the API and returns the
         // value back to the reducer's `numberFactResponse` action.
         return .run { [count = state.count] send in
-          await send(.numberFactResponse(Result { try await self.factClient.fetch(count) }))
+          await send(.numberFactResponse(Result { try await factClient.fetch(count) }))
         }
 
       case let .numberFactResponse(.success(response)):
@@ -94,6 +96,8 @@ struct EffectsBasics {
     }
   }
 }
+
+// MARK: - EffectsBasicsView
 
 struct EffectsBasicsView: View {
   let store: StoreOf<EffectsBasics>

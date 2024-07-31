@@ -2,15 +2,17 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This file demonstrates how to handle two-way bindings in the Composable Architecture using \
-  bindable actions and binding reducers.
+This file demonstrates how to handle two-way bindings in the Composable Architecture using \
+bindable actions and binding reducers.
 
-  Bindable actions allow you to safely eliminate the boilerplate caused by needing to have a \
-  unique action for every UI control. Instead, all UI bindings can be consolidated into a single \
-  `binding` action, which the `BindingReducer` can automatically apply to state.
+Bindable actions allow you to safely eliminate the boilerplate caused by needing to have a \
+unique action for every UI control. Instead, all UI bindings can be consolidated into a single \
+`binding` action, which the `BindingReducer` can automatically apply to state.
 
-  It is instructive to compare this case study to the "Binding Basics" case study.
-  """
+It is instructive to compare this case study to the "Binding Basics" case study.
+"""
+
+// MARK: - BindingForm
 
 @Reducer
 struct BindingForm {
@@ -46,6 +48,8 @@ struct BindingForm {
   }
 }
 
+// MARK: - BindingFormView
+
 struct BindingFormView: View {
   @Bindable var store: StoreOf<BindingForm>
 
@@ -68,14 +72,14 @@ struct BindingFormView: View {
       Stepper(
         "Max slider value: \(store.stepCount)",
         value: $store.stepCount,
-        in: 0...100
+        in: 0 ... 100
       )
       .disabled(store.toggleIsOn)
 
       HStack {
         Text("Slider value: \(Int(store.sliderValue))")
 
-        Slider(value: $store.sliderValue, in: 0...Double(store.stepCount))
+        Slider(value: $store.sliderValue, in: 0 ... Double(store.stepCount))
           .tint(.accentColor)
       }
       .disabled(store.toggleIsOn)

@@ -1,37 +1,37 @@
-// 
+//
 //  ChildNavigationView.swift
 //  TIL_TCA
 //
 //  Created by MaraMincho on 7/31/24.
 //
-import SwiftUI
 import ComposableArchitecture
+import SwiftUI
 
 struct ChildNavigationView: View {
-
   // MARK: Reducer
+
   @Bindable
   var store: StoreOf<ChildNavigation>
-  
-  //MARK: Init
+
+  // MARK: Init
+
   init(store: StoreOf<ChildNavigation>) {
     print("ChildView iniited")
     self.store = store
   }
 
   // MARK: Content
+
   @ViewBuilder
   private func makeContentView() -> some View {
-    VStack(spacing: 0) {
-      
-    }
+    VStack(spacing: 0) {}
   }
 
   var body: some View {
     NavigationStackStore(store.scope(state: \.path, action: \.scope.path)) {
       ZStack {
         Color.orange.ignoresSafeArea()
-        VStack{
+        VStack {
           Button {
             store.send(.view(.tappedButton(1)))
           } label: {
@@ -45,8 +45,7 @@ struct ChildNavigationView: View {
         }
       }
 
-
-    } destination: { store in
+    } destination: { _ in
       EmptyView()
     }
     .onAppear {
@@ -54,11 +53,7 @@ struct ChildNavigationView: View {
     }
   }
 
-  private enum Metrics {
+  private enum Metrics {}
 
-  }
-  
-  private enum Constants {
-    
-  }
+  private enum Constants {}
 }

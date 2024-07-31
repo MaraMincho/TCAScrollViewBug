@@ -2,11 +2,13 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This screen demonstrates navigation that depends on loading optional state from a list element.
+This screen demonstrates navigation that depends on loading optional state from a list element.
 
-  Tapping a row simultaneously navigates to a screen that depends on its associated counter state \
-  and fires off an effect that will load this state a second later.
-  """
+Tapping a row simultaneously navigates to a screen that depends on its associated counter state \
+and fires off an effect that will load this state a second later.
+"""
+
+// MARK: - NavigateAndLoadList
 
 @Reducer
 struct NavigateAndLoadList {
@@ -42,7 +44,7 @@ struct NavigateAndLoadList {
       case let .setNavigation(selection: .some(id)):
         state.selection = Identified(nil, id: id)
         return .run { send in
-          try await self.clock.sleep(for: .seconds(1))
+          try await clock.sleep(for: .seconds(1))
           await send(.setNavigationSelectionDelayCompleted)
         }
         .cancellable(id: CancelID.load, cancelInFlight: true)
@@ -69,11 +71,13 @@ struct NavigateAndLoadList {
   }
 }
 
+// MARK: - NavigateAndLoadListView
+
 struct NavigateAndLoadListView: View {
   @Bindable var store: StoreOf<NavigateAndLoadList>
 
   var body: some View {
-    WithViewStore(self.store, observe: { $0 }) { viewStore in
+    WithViewStore(store, observe: { $0 }) { viewStore in
       Form {
         Section {
           AboutView(readMe: readMe)
@@ -87,7 +91,7 @@ struct NavigateAndLoadListView: View {
               send: { .setNavigation(selection: $0) }
             )
           ) {
-            IfLetStore(self.store.scope(state: \.selection?.value, action: \.counter)) {
+            IfLetStore(store.scope(state: \.selection?.value, action: \.counter)) {
               CounterView(store: $0)
             } else: {
               ProgressView()

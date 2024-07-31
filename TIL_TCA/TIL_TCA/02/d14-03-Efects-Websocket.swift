@@ -2,12 +2,14 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This application demonstrates how to work with a web socket in the Composable Architecture.
+This application demonstrates how to work with a web socket in the Composable Architecture.
 
-  A lightweight wrapper is made for `URLSession`'s API for web sockets so that we can send, \
-  receive and ping a socket endpoint. To test, connect to the socket server, and then send a \
-  message. The socket server should immediately reply with the exact message you sent in.
-  """
+A lightweight wrapper is made for `URLSession`'s API for web sockets so that we can send, \
+receive and ping a socket endpoint. To test, connect to the socket server, and then send a \
+message. The socket server should immediately reply with the exact message you sent in.
+"""
+
+// MARK: - WebSocket
 
 @Reducer
 struct WebSocket {
@@ -48,14 +50,15 @@ struct WebSocket {
 
       case .connectButtonTapped:
         switch state.connectivityState {
-        case .connected, .connecting:
+        case .connected,
+             .connecting:
           state.connectivityState = .disconnected
           return .cancel(id: WebSocketClient.ID())
 
         case .disconnected:
           state.connectivityState = .connecting
           return .run { send in
-            let actions = await self.webSocket.open(
+            let actions = await webSocket.open(
               id: WebSocketClient.ID(),
               url: URL(string: "wss://echo.websocket.events")!,
               protocols: []
@@ -71,12 +74,12 @@ struct WebSocket {
                 case .didOpen:
                   group.addTask {
                     while !Task.isCancelled {
-                      try await self.clock.sleep(for: .seconds(10))
-                      try? await self.webSocket.sendPing(id: WebSocketClient.ID())
+                      try await clock.sleep(for: .seconds(10))
+                      try? await webSocket.sendPing(id: WebSocketClient.ID())
                     }
                   }
                   group.addTask {
-                    for await result in try await self.webSocket.receive(id: WebSocketClient.ID()) {
+                    for await result in try await webSocket.receive(id: WebSocketClient.ID()) {
                       await send(.receivedSocketMessage(result))
                     }
                   }
@@ -106,7 +109,7 @@ struct WebSocket {
         let messageToSend = state.messageToSend
         state.messageToSend = ""
         return .run { send in
-          try await self.webSocket.send(id: WebSocketClient.ID(), message: .string(messageToSend))
+          try await webSocket.send(id: WebSocketClient.ID(), message: .string(messageToSend))
           await send(.sendResponse(didSucceed: true))
         } catch: { _, send in
           await send(.sendResponse(didSucceed: false))
@@ -136,6 +139,8 @@ struct WebSocket {
   }
 }
 
+// MARK: - WebSocketView
+
 struct WebSocketView: View {
   @Bindable var store: StoreOf<WebSocket>
 
@@ -151,8 +156,8 @@ struct WebSocketView: View {
             store.connectivityState == .connected
               ? "Disconnect"
               : store.connectivityState == .disconnected
-                ? "Connect"
-                : "Connecting..."
+              ? "Connect"
+              : "Connecting..."
           ) {
             store.send(.connectButtonTapped)
           }
@@ -187,18 +192,20 @@ struct WebSocketView: View {
   }
 }
 
+// MARK: - WebSocketClient
+
 @DependencyClient
 struct WebSocketClient {
   struct ID: Hashable, @unchecked Sendable {
     let rawValue: AnyHashable
 
-    init<RawValue: Hashable & Sendable>(_ rawValue: RawValue) {
+    init(_ rawValue: some Hashable & Sendable) {
       self.rawValue = rawValue
     }
 
     init() {
       struct RawValue: Hashable, Sendable {}
-      self.rawValue = RawValue()
+      rawValue = RawValue()
     }
   }
 
@@ -227,10 +234,13 @@ struct WebSocketClient {
   var open: @Sendable (_ id: ID, _ url: URL, _ protocols: [String]) async -> AsyncStream<Action> = {
     _, _, _ in .finished
   }
+
   var receive: @Sendable (_ id: ID) async throws -> AsyncStream<Result<Message, Error>>
   var send: @Sendable (_ id: ID, _ message: URLSessionWebSocketTask.Message) async throws -> Void
   var sendPing: @Sendable (_ id: ID) async throws -> Void
 }
+
+// MARK: DependencyKey
 
 extension WebSocketClient: DependencyKey {
   static var liveValue: Self {
@@ -250,7 +260,7 @@ extension WebSocketClient: DependencyKey {
           webSocketTask _: URLSessionWebSocketTask,
           didOpenWithProtocol protocol: String?
         ) {
-          self.continuation?.yield(.didOpen(protocol: `protocol`))
+          continuation?.yield(.didOpen(protocol: `protocol`))
         }
 
         func urlSession(
@@ -259,8 +269,8 @@ extension WebSocketClient: DependencyKey {
           didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
           reason: Data?
         ) {
-          self.continuation?.yield(.didClose(code: closeCode, reason: reason))
-          self.continuation?.finish()
+          continuation?.yield(.didClose(code: closeCode, reason: reason))
+          continuation?.finish()
         }
       }
 
@@ -284,7 +294,7 @@ extension WebSocketClient: DependencyKey {
           continuation = $0
         }
         delegate.continuation = continuation
-        self.dependencies[id] = (socket, delegate)
+        dependencies[id] = (socket, delegate)
         return stream
       }
 
@@ -292,15 +302,15 @@ extension WebSocketClient: DependencyKey {
         id: ID, with closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?
       ) async throws {
         defer { self.dependencies[id] = nil }
-        try self.socket(id: id).cancel(with: closeCode, reason: reason)
+        try socket(id: id).cancel(with: closeCode, reason: reason)
       }
 
       func receive(id: ID) throws -> AsyncStream<Result<Message, Error>> {
-        let socket = try self.socket(id: id)
+        let socket = try socket(id: id)
         return AsyncStream { continuation in
           let task = Task {
             while !Task.isCancelled {
-              continuation.yield(await Result { try await Message(socket.receive()) })
+              await continuation.yield(Result { try await Message(socket.receive()) })
             }
             continuation.finish()
           }
@@ -309,11 +319,11 @@ extension WebSocketClient: DependencyKey {
       }
 
       func send(id: ID, message: URLSessionWebSocketTask.Message) async throws {
-        try await self.socket(id: id).send(message)
+        try await socket(id: id).send(message)
       }
 
       func sendPing(id: ID) async throws {
-        let socket = try self.socket(id: id)
+        let socket = try socket(id: id)
         return try await withCheckedThrowingContinuation { continuation in
           socket.sendPing { error in
             if let error {
@@ -326,7 +336,7 @@ extension WebSocketClient: DependencyKey {
       }
 
       private func socket(id: ID) throws -> URLSessionWebSocketTask {
-        guard let dependencies = self.dependencies[id]?.socket else {
+        guard let dependencies = dependencies[id]?.socket else {
           struct Closed: Error {}
           throw Closed()
         }
@@ -334,7 +344,7 @@ extension WebSocketClient: DependencyKey {
       }
 
       private func removeDependencies(id: ID) {
-        self.dependencies[id] = nil
+        dependencies[id] = nil
       }
     }
   }

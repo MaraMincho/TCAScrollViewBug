@@ -2,9 +2,11 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This screen demonstrates driving 3 kinds of navigation (drill down, sheet, popover) from a single
-  piece of enum state.
-  """
+This screen demonstrates driving 3 kinds of navigation (drill down, sheet, popover) from a single
+piece of enum state.
+"""
+
+// MARK: - MultipleDestinations
 
 @Reducer
 struct MultipleDestinations {
@@ -46,6 +48,8 @@ struct MultipleDestinations {
     .ifLet(\.$destination, action: \.destination)
   }
 }
+
+// MARK: - MultipleDestinationsView
 
 struct MultipleDestinationsView: View {
   @Bindable var store: StoreOf<MultipleDestinations>

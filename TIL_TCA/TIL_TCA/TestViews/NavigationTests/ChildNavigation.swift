@@ -1,26 +1,29 @@
-// 
+//
 //  ChildNavigation.swift
 //  TIL_TCA
 //
 //  Created by MaraMincho on 7/31/24.
 //
-import Foundation
 import ComposableArchitecture
+import Foundation
 
+// MARK: - ChildPath
 
 @Reducer
 enum ChildPath {
   case d1(AlertAndConfirmationDialog)
   case d2(Counter)
 }
+
+// MARK: - ChildNavigation
+
 @Reducer
 struct ChildNavigation {
-
   @ObservableState
   struct State {
     var isOnAppear = false
     var path: StackState<ChildPath.State> = .init()
-    init () {}
+    init() {}
   }
 
   enum Action {
@@ -49,7 +52,7 @@ struct ChildNavigation {
 
   var viewAction: (_ state: inout State, _ action: ViewAction) -> Effect<Action> = { state, action in
     switch action {
-    case let .onAppear(isAppear) :
+    case let .onAppear(isAppear):
       if state.isOnAppear {
         return .none
       }
@@ -58,26 +61,26 @@ struct ChildNavigation {
     case let .tappedButton(val):
       if val % 2 == 0 {
         state.path.append(.d1(.init()))
-      }else {
+      } else {
         state.path.append(.d2(.init()))
       }
       return .none
     }
   }
 
-  var scopeAction: (_ state: inout State, _ action: ScopeAction) -> Effect<Action> = { state, action in
+  var scopeAction: (_ state: inout State, _ action: ScopeAction) -> Effect<Action> = { _, _ in
     return .none
   }
 
-  var innerAction: (_ state: inout State, _ action: InnerAction) -> Effect<Action> = { state, action in
+  var innerAction: (_ state: inout State, _ action: InnerAction) -> Effect<Action> = { _, _ in
     return .none
   }
 
-  var asyncAction: (_ state: inout State, _ action: AsyncAction) -> Effect<Action> = { state, action in
+  var asyncAction: (_ state: inout State, _ action: AsyncAction) -> Effect<Action> = { _, _ in
     return .none
   }
 
-  var delegateAction: (_ state: inout State, _ action: DelegateAction) -> Effect<Action> = { state, action in
+  var delegateAction: (_ state: inout State, _ action: DelegateAction) -> Effect<Action> = { _, _ in
     return .none
   }
 
@@ -90,9 +93,9 @@ struct ChildNavigation {
         return innerAction(&state, currentAction)
       case let .async(currentAction):
         return asyncAction(&state, currentAction)
-      case let .scope(currentAction) :
+      case let .scope(currentAction):
         return scopeAction(&state, currentAction)
-      case let .delegate(currentAction) :
+      case let .delegate(currentAction):
         return delegateAction(&state, currentAction)
       }
     }
@@ -100,4 +103,4 @@ struct ChildNavigation {
   }
 }
 
-extension Reducer where Self.State == ChildNavigation.State, Self.Action == ChildNavigation.Action { }
+extension Reducer where Self.State == ChildNavigation.State, Self.Action == ChildNavigation.Action {}

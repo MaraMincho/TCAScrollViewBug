@@ -2,11 +2,13 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This screen demonstrates navigation that depends on loading optional data into state.
+This screen demonstrates navigation that depends on loading optional data into state.
 
-  Tapping "Load optional counter" simultaneously presents a sheet that depends on optional counter \
-  state and fires off an effect that will load this state a second later.
-  """
+Tapping "Load optional counter" simultaneously presents a sheet that depends on optional counter \
+state and fires off an effect that will load this state a second later.
+"""
+
+// MARK: - PresentAndLoad
 
 @Reducer
 struct PresentAndLoad {
@@ -31,7 +33,7 @@ struct PresentAndLoad {
       case .setSheet(isPresented: true):
         state.isSheetPresented = true
         return .run { send in
-          try await self.clock.sleep(for: .seconds(1))
+          try await clock.sleep(for: .seconds(1))
           await send(.setSheetIsPresentedDelayCompleted)
         }
         .cancellable(id: CancelID.load)
@@ -54,6 +56,8 @@ struct PresentAndLoad {
     }
   }
 }
+
+// MARK: - PresentAndLoadView
 
 struct PresentAndLoadView: View {
   @Bindable var store: StoreOf<PresentAndLoad>

@@ -2,15 +2,17 @@ import ComposableArchitecture
 import SwiftUI
 
 private let readMe = """
-  This application demonstrates how to make use of SwiftUI's `refreshable` API in the Composable \
-  Architecture. Use the "-" and "+" buttons to count up and down, and then pull down to request \
-  a fact about that number.
+This application demonstrates how to make use of SwiftUI's `refreshable` API in the Composable \
+Architecture. Use the "-" and "+" buttons to count up and down, and then pull down to request \
+a fact about that number.
 
-  There is a discardable task that is returned from the store's `.send` method representing any \
-  effects kicked off by the reducer. You can `await` this task using its `.finish` method, which \
-  will suspend while the effects remain in flight. This suspension communicates to SwiftUI that \
-  you are currently fetching data so that it knows to continue showing the loading indicator.
-  """
+There is a discardable task that is returned from the store's `.send` method representing any \
+effects kicked off by the reducer. You can `await` this task using its `.finish` method, which \
+will suspend while the effects remain in flight. This suspension communicates to SwiftUI that \
+you are currently fetching data so that it knows to continue showing the loading indicator.
+"""
+
+// MARK: - Refreshable
 
 @Reducer
 struct Refreshable {
@@ -58,7 +60,7 @@ struct Refreshable {
         state.fact = nil
         return .run { [count = state.count] send in
           await send(
-            .factResponse(Result { try await self.factClient.fetch(count) }),
+            .factResponse(Result { try await factClient.fetch(count) }),
             animation: .default
           )
         }
@@ -67,6 +69,8 @@ struct Refreshable {
     }
   }
 }
+
+// MARK: - RefreshableView
 
 struct RefreshableView: View {
   let store: StoreOf<Refreshable>
@@ -101,7 +105,7 @@ struct RefreshableView: View {
         Text(fact)
           .bold()
       }
-      if self.isLoading {
+      if isLoading {
         Button("Cancel") {
           store.send(.cancelButtonTapped, animation: .default)
         }
